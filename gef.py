@@ -3514,9 +3514,11 @@ def continue_handler(_: "gdb.Event") -> None:
 
 
 def hook_stop_handler(_: "gdb.StopEvent") -> None:
+
     """GDB event handler for stop cases."""
     reset_all_caches()
     gdb.execute("context")
+    gdb.execute("custom_stop_hook")
     return
 
 
@@ -3860,6 +3862,10 @@ def is_syscall(instruction: Union[Instruction,int]) -> bool:
     if len(instruction.operands):
         insn_str += f" {', '.join(instruction.operands)}"
     return insn_str in gef.arch.syscall_instructions
+
+
+def init_custom_stop_hook():
+    gdb.execute('define custom_stop_hook\n end')
 
 
 #
@@ -11078,6 +11084,7 @@ if __name__ == "__main__":
     gdb.prompt_hook = __gef_prompt__
 
     # gdb events configuration
+    init_custom_stop_hook()
     gef_on_continue_hook(continue_handler)
     gef_on_stop_hook(hook_stop_handler)
     gef_on_new_hook(new_objfile_handler)
